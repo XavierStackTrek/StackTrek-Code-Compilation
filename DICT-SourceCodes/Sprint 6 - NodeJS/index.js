@@ -9,12 +9,7 @@ app.use(express.json()); //req.body
 //ROUTES//
 
 app.get("/", async (req, res) => {
-  try {
-    const allUsers = await pool.query("SELECT * FROM users");
-    res.json(allUsers.rows);
-  } catch (err) {
-    console.error(err.message);
-  }
+  res.send("Hello There");
 });
 //CREATE
 app.post("/users/create", async (req, res) => {

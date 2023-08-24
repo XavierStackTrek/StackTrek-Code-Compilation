@@ -1,5 +1,5 @@
 const express = require("express");
-const pool = require("./db");
+const sql = require("./db");
 const app = express();
 const cors = require("cors");
 
@@ -11,17 +11,16 @@ app.use(express.json()); //req.body
 app.get("/", async (req, res) => {
   res.send("Hello There");
 });
+
 //CREATE
 app.post("/users/create", async (req, res) => {
   try {
     const { firstname, lastname } = req.body;
     console.log(req.params);
-    const newUser = await pool.query(
-      `INSERT INTO users ("first_name", "last_name") VALUES($1, $2) RETURNING *`,
-      [firstname, lastname]
-    );
+    const newUser =
+      await sql`INSERT INTO users ("first_name", "last_name") VALUES(${firstname}, ${lastname}) RETURNING *`;
 
-    res.json(newUser.rows[0]);
+    res.json(newUser);
   } catch (err) {
     console.error(err.message);
   }
@@ -31,22 +30,20 @@ app.post("/users/create", async (req, res) => {
 //get all users
 app.get("/users", async (req, res) => {
   try {
-    const allUsers = await pool.query("SELECT * FROM users");
-    res.json(allUsers.rows);
+    const allUsers = await sql`SELECT * FROM users`;
+    res.json(allUsers);
   } catch (err) {
     console.error(err.message);
   }
 });
 
-//select a user
+//Select a user
 app.get("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const selectUser = await pool.query(
-      "SELECT * FROM users WHERE user_id = $1",
-      [id]
-    );
-    res.json(selectUser.rows[0]);
+    const selectUser = await sql`SELECT * FROM users WHERE user_id = ${id}`;
+
+    res.json(selectUser);
   } catch (err) {
     console.error(err.message);
   }
@@ -57,10 +54,11 @@ app.put("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { firstname, lastname } = req.body;
-    const updateUser = await pool.query(
-      `UPDATE users SET "first_name" = $1, "last_name" = $2 WHERE user_id = $3`,
-      [firstname, lastname, id]
-    );
+    const updateUser = await sql`
+    UPDATE users 
+    SET "first_name" = ${firstname}, "last_name" = ${lastname} 
+    WHERE user_id = ${id}`;
+
     res.json(`User id: ${id} was updated!`);
   } catch (err) {
     console.error(err.message);
@@ -71,10 +69,7 @@ app.put("/users/:id", async (req, res) => {
 app.delete("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deleteUser = await pool.query(
-      "DELETE FROM users WHERE user_id = $1",
-      [id]
-    );
+    const deleteUser = await sql`DELETE FROM users WHERE user_id = ${id}`;
     res.json("User was deleted!");
   } catch (err) {
     console.error(err.message);
